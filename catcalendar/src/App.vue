@@ -2,7 +2,7 @@
 import {ref, onMounted} from 'vue';
 import IMG_1 from '@/assets/IMG_2087.png';
 import IMG_2 from '@/assets/IMG_2148.png';
-
+//hallo
 const catData = ref(null);
 const check1 = ref(false);
 const check2 = ref(false);
