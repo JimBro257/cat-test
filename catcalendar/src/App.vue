@@ -12,7 +12,7 @@ const answerSave = ref('');
 
 const loadSite = async () => {
   try {
-    const response = await fetch('http://192.168.178.84:3000/status');
+    const response = await fetch('https://cat-status.onrender.com/status');
     if(!response.ok) {
       throw new Error('Something went wrong');
     }
@@ -24,7 +24,7 @@ const loadSite = async () => {
 }
 onMounted(loadSite)
 const saveClicked = async () => {
-  const current = await fetch('http://192.168.178.84:3000/status');
+  const current = await fetch('https://cat-status.onrender.com/status');
   const currentStatus = await current.json();
 
   const updatedStatus = {
@@ -33,7 +33,7 @@ const saveClicked = async () => {
     abends: currentStatus.abends || check3.value,
   };
   try {
-    const response = await fetch('http://192.168.178.84:3000/status', {
+    const response = await fetch('https://cat-status.onrender.com/status', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
