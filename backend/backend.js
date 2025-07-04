@@ -4,7 +4,6 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3000;
 
 const DATA_PATH = path.join(__dirname, 'data.json');
 
@@ -58,6 +57,8 @@ app.post('/status', (req, res) => {
     res.json({ message: 'Status aktualisiert' });
 });
 
-app.listen(PORT,'0.0.0.0', () => {
-    console.log(`Server läuft auf http://192.168.x.x:3000`);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server läuft auf Port ${PORT}`);
 });
