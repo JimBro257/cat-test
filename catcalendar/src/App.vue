@@ -19,7 +19,7 @@ const loadSite = async () => {
     }
     const data = await response.json();
     catData.value = data;
-    notiz.value = data.notiz || '';
+    notiz.value = data.note || '';
   } catch (e) {
     errorMsg.value = e;
   }
@@ -33,7 +33,7 @@ const saveClicked = async () => {
     morgens: currentStatus.morgens || check1.value,
     mittags: currentStatus.mittags || check2.value,
     abends: currentStatus.abends || check3.value,
-    notiz: notiz.value
+    note: notiz.value
   };
 
   try {
