@@ -4,7 +4,6 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
-
 const DATA_PATH = path.join(__dirname, 'data.json');
 
 app.use(express.json(), cors());
@@ -13,11 +12,22 @@ function loadData() {
     if (!fs.existsSync(DATA_PATH)) {
         return {
             date: new Date().toISOString().split('T')[0],
-            status: { morgens: false, mittags: false, abends: false }
+            status: { morgens: false, mittags: false, abends: false },
+            notiz: '',
+            lastModified: new Date().toISOString()
         };
     }
     const raw = fs.readFileSync(DATA_PATH, 'utf8');
-    return JSON.parse(raw);
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        return {
+            date: new Date().toISOString().split('T')[0],
+            status: { morgens: false, mittags: false, abends: false },
+            notiz: '',
+            lastModified: new Date().toISOString()
+        };
+    }
 }
 
 function saveData(data) {
@@ -31,30 +41,44 @@ app.get('/status', (req, res) => {
     if (data.date !== today) {
         data.date = today;
         data.status = { morgens: false, mittags: false, abends: false };
+        data.notiz = '';
+        data.lastModified = new Date().toISOString();
         saveData(data);
     }
 
-    res.json(data.status);
+    res.json({
+        ...data.status,
+        notiz: data.notiz,
+        lastModified: data.lastModified
+    });
 });
 
 app.post('/status', (req, res) => {
-    const incoming = req.body;
+    const { morgens, mittags, abends, notiz, lastModified } = req.body;
+    const current = loadData();
 
     if (
-        typeof incoming.morgens !== 'boolean' ||
-        typeof incoming.mittags !== 'boolean' ||
-        typeof incoming.abends !== 'boolean'
+        typeof morgens !== 'boolean' ||
+        typeof mittags !== 'boolean' ||
+        typeof abends !== 'boolean' ||
+        typeof notiz !== 'string'
     ) {
         return res.status(400).json({ error: 'Ungültige Datenstruktur' });
     }
 
-    const data = {
+    if (new Date(lastModified) < new Date(current.lastModified)) {
+        return res.status(409).json({ error: 'Daten wurden zwischenzeitlich geändert' });
+    }
+
+    const updated = {
         date: new Date().toISOString().split('T')[0],
-        status: incoming
+        status: { morgens, mittags, abends },
+        notiz,
+        lastModified: new Date().toISOString()
     };
 
-    saveData(data);
-    res.json({ message: 'Status aktualisiert' });
+    saveData(updated);
+    res.json({ message: 'Status aktualisiert', lastModified: updated.lastModified });
 });
 
 const PORT = process.env.PORT || 3000;

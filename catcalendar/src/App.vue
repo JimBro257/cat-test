@@ -9,15 +9,17 @@ const check2 = ref(false);
 const check3 = ref(false);
 const errorMsg = ref('');
 const answerSave = ref('');
+const notiz = ref('');
 
 const loadSite = async () => {
   try {
     const response = await fetch('https://cat-status.onrender.com/status');
-    if(!response.ok) {
+    if (!response.ok) {
       throw new Error('Something went wrong');
     }
-    catData.value = await response.json();
-    console.log(catData.value)
+    const data = await response.json();
+    catData.value = data;
+    notiz.value = data.notiz || '';
   } catch (e) {
     errorMsg.value = e;
   }
@@ -31,21 +33,23 @@ const saveClicked = async () => {
     morgens: currentStatus.morgens || check1.value,
     mittags: currentStatus.mittags || check2.value,
     abends: currentStatus.abends || check3.value,
+    notiz: notiz.value
   };
+
   try {
     const response = await fetch('https://cat-status.onrender.com/status', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(updatedStatus)
-        }
-      );
-    if(!response.ok) {
-      throw new Error('Something went wrong');
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatedStatus)
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Something went wrong');
     }
     await loadSite();
-    answerSave.value = "Daten erfolgreich gespeichert.";
+    answerSave.value = 'Daten erfolgreich gespeichert.';
   } catch (e) {
     answerSave.value = e;
   }
@@ -83,6 +87,10 @@ const saveClicked = async () => {
       <div v-else>
         <label for="c2">Haben die Katzen heute Abend etwas zu essen bekommen?</label>
         <input id="c2" type="checkbox" v-model="check3">
+      </div>
+      <div id="notiz-container">
+        <label for="notiz">Notiz für heute:</label>
+        <textarea id="notiz" rows="4" v-model="notiz" placeholder="Trage hier zusätzliche Notizen ein."></textarea>
       </div>
       <div v-if="catData.morgens !== true || catData.mittags !== true || catData.abends !== true" id="save-container">
         <button id="save-button" @click="saveClicked">Speichere Auswahl</button>
@@ -148,6 +156,17 @@ input[type="checkbox"] {
   transform: scale(1.4);
   margin: 0.5rem 0 1rem;
   accent-color: var(--akzent);
+}
+#notiz-container {
+  margin-top: 1rem;
+}
+#notiz-container textarea {
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  resize: vertical;
 }
 #save-container {
   margin-top: 1.5rem;
